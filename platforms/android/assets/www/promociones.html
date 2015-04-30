@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<title>Promociones ecompetic</title>
+	<meta name="format-detection" content="telephone=yes" />
+  	<meta name="msapplication-tap-highlight" content="yes" />
+	<link rel="stylesheet" href="js/mobile/jquery.mobile-1.4.5.css">
+	<link rel="stylesheet" href="js/mobile/ecompetic.css">
+	<!--<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />-->
+	<!--<link rel="stylesheet" href="js/mobile/jquery.mobile.theme-1.4.5.min.css">-->
+	<script src="js/jquery/jquery2.min.js"></script>
+	<script src="js/mobile/jquery.mobile-1.4.5.min.js"></script>
+	<script src="js/jquery.lazyload.min.js"></script>
+	<uses-permission android:name="android.permission.INTERNET" />
+
+
+	<script>
+		
+		$(function(){
+
+			/*swipe para menu*/
+			$( document ).on( "swipeleft swiperight", "#directorio", function( e ) {
+		        // We check if there is no open panel on the page because otherwise
+		        // a swipe to close the left panel would also open the right panel (and v.v.).
+		        // We do this by checking the data that the framework stores on the page element (panel: open).
+		        if ( $( ".ui-page-active" ).jqmData( "panel" ) !== "open" ) {
+		            if ( e.type === "swipeleft" ) {
+		                //$( "#panel_1" ).panel( "open" );
+		            } else if ( e.type === "swiperight" ) {
+		                $( "#panel_1" ).panel( "open" );
+		            }
+		        }
+		    });
+			
+			var cons_result = "select promociones.*,empresas.nombre as nom_empresa,empresas.pkID as id_empresa from promociones"+
+							  " inner join empresas on empresas.pkID = promociones.empresa_id";			
+
+			console.log(cons_result);
+/**/	
+			$.ajax({
+				url: 'http://vivedigitalsantander.com/pruebas_ecompetic/ecompetic_mobile/includes/int_DAO.php',
+				type: 'GET',
+				crossDomain: true,
+				dataType: 'jsonp',
+				jsonp: 'callback',
+				data: "consulta="+cons_result+"&tipo=mostrar",
+				beforeSend: function() {
+	              	//--------------------------
+	              	//abre loader
+				    $.mobile.loading( "show", {
+				            text: "cargando...",
+				            textVisible: true
+				    });
+				    //--------------------------
+				  },
+			})
+			.done(function(data) {
+				console.log(data.mensaje);
+				//-----------------------------------------------------------------------------
+				$.each(data.mensaje, function(index, val) {				 	
+					$("#res_principal").append(
+						"<h1 class='header'>"+val.nombre+"</h1>"+
+						'<img class="lazy" src="http://ecompetic.com/admin/uploads/'+val.imagen1+'" style="max-width: 100%; margin: auto; display: inherit;" />'+
+						"<p class='content-item-promo'><span class='label'>Empresa:</span> <a href='resultado.html?id="+val.id_empresa+"&categoria=Empresas' target='_self'>"+val.nom_empresa+"</a><br/>"+
+						"<span class='label'>Fecha:</span> "+val.fecha_inicial+" hasta "+val.fecha_final+"<br/>"+
+						"<span class='label'>Descripción:</span> "+val.descripcion_larga+"</p>"						
+					);
+				});/**/
+				//-----------------------------------------------------------------------------
+				//cierra loader
+				$.mobile.loading( "hide" );
+				//lazy loader
+				$("img.lazy").lazyload({
+				    effect : "fadeIn"
+				});
+				//-----------			
+			})
+			.fail(function(xhr) {
+				console.log("error");
+				//cierra loader
+				$.mobile.loading( "hide" );
+
+				$.mobile.loading( "show", {
+				            text: "Error al cargar -- "+xhr.status,
+				            textVisible: true,
+							textonly: true
+				    });	
+			})
+			.always(function() {
+				console.log("complete");				
+			});
+		//-------------------------------------------------------------
+				$("#btn_inicio").click(function(event) {
+					/* Act on the event */
+					location.href="index.html";
+				});		
+
+				$("#btn_directorio").click(function(event) {
+					/* Act on the event */
+					location.href="directorio.html";
+				});
+
+		//-------------------------------------------------------------		
+		});   
+
+	</script>
+</head>
+<body data-role="page" id="directorio" data-url="directorio">
+	<!-- header-->
+		<div id="panel_1" data-role="panel" data-display="overlay" >
+			<h2>Menú</h2>	  		
+	  		<button id="btn_inicio" class="ui-btn ui-icon-home ui-btn-icon-left ui-alt-icon">Inicio</button>	  		
+			<button id="btn_directorio" class="ui-btn ui-icon-location ui-btn-icon-left ui-alt-icon">Directorio</button>
+	  		<a href="#my-header" data-rel="close" class="ui-btn ui-icon-delete ui-btn-icon-left ui-alt-icon">Cerrar</a>
+		</div>	
+			
+		<div data-role="header" class" ui-header ui-bar-inherit">
+			<h2>ecompetic Mobile</h2>
+			<a href="#panel_1" class="ui-nodisc-icon ui-alt-icon ui-btn-left ui-btn ui-icon-bars ui-btn-icon-notext ui-btn-b" data-role="button" role="button">Menu</a>	
+			</div> <!-- /header -->
+
+
+		<div role="main" class="ui-content">
+	        <!-- principal -->
+			<div id="data_result">
+				<h2 class="page-title">Directorio de Empresas</h2>
+			</div>
+			<div id="res_principal" class="ui-grid-a"></div>
+			<!-- /principal -->
+    	</div>
+	
+</body>
+</html>
